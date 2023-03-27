@@ -13,7 +13,7 @@ export type LogLevels = {
 };
 
 class Logger implements ILogger {
-  private readonly prefix: string;
+  private prefix: string;
   private level: string;
   private levels: LogLevels = {
     debug: 0,
@@ -46,7 +46,7 @@ class Logger implements ILogger {
 
     let LOG_PREFIX = this.prefix;
     LOG_PREFIX = Colors.bold(LOG_PREFIX);
-    LOG_PREFIX = Colors.bgBrightBlack(LOG_PREFIX);
+    LOG_PREFIX = Colors.bgBlack(LOG_PREFIX);
     LOG_PREFIX = `[${LOG_PREFIX}]`;
 
     let logArgs = args.map((arg) => {
@@ -62,7 +62,7 @@ class Logger implements ILogger {
         arg.endsWith("]")
       ) {
         const innerText: any = arg.slice(1, -1);
-        return `[${Colors.bgBrightBlack(innerText)}]`;
+        return `[${Colors.bgBlack(innerText.toUpperCase())}]`;
       }
       return arg;
     });
@@ -111,6 +111,10 @@ class Logger implements ILogger {
 
   setLevelError() {
     this.level = "error";
+  }
+
+  setPrefix(prefix: string) {
+    this.prefix = prefix
   }
 }
 
