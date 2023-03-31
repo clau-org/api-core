@@ -1,4 +1,4 @@
-name: Release
+name: Publish release - API
 
 on:
   push:
@@ -16,18 +16,30 @@ on:
           - minor
           - major
 
+run-name: "[${{ github.ref == 'refs/heads/main' && inputs.version || 'patch' }}] - Commit message '${{ github.event.head_commit.message }}'"
+
 env:
   NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NODE_OPTIONS: "--max_old_space_size=4096"
   DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
 
 jobs:
-  create_release:
-    name: Create Release
+  publish:
+    name: Publish release - API
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip]')"
+
     steps:
       - name: Checkout code 📁
         uses: actions/checkout@v3
+
+      - name: Install Deno ⬇️
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Test
+        uses: deno test
 
       - name: Update version
         run: |
