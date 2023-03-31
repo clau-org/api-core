@@ -74,8 +74,8 @@ jobs:
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
-          git tag v${{ env.NEW_VERSION }}
-          git push origin v${{ env.NEW_VERSION }}
+          git tag v$NEW_VERSION
+          git push origin v$NEW_VERSION
 
       - name: Create Release
         id: create_release
