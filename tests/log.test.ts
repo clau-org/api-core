@@ -1,4 +1,4 @@
-import { Logger } from "../src/mod.ts";
+import { Logger } from "../src/log.ts";
 
 Deno.test("Logger should log message", () => {
   const logger = new Logger("TEST");
