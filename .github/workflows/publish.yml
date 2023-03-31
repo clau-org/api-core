@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Select type of version increment"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+env:
+  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NODE_OPTIONS: "--max_old_space_size=4096"
+  DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
+
+jobs:
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code 📁
+        uses: actions/checkout@v3
+
+      - name: Update version
+        run: |
+          # Read the current version from deno.jsonc
+          VERSION=$(jq -r '.version' deno.jsonc)
+
+          # Split the version string into major, minor, and patch parts
+          IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+
+          # Increment the version based on the input parameter
+          case "${{ github.event.inputs.version }}" in
+            "major") MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0;;
+            "minor") MINOR=$((MINOR + 1)); PATCH=0;;
+            *) PATCH=$((PATCH + 1));;
+          esac
+
+          # Update the version string in deno.jsonc
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          sed -i "s/\"version\": \"$VERSION\"/\"version\": \"$NEW_VERSION\"/g" deno.jsonc
+
+          # Commit the updated version and push the changes
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git commit -a -m "Bump version to $NEW_VERSION"
+          git push
+
+      - name: Create Tag
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git tag v${NEW_VERSION}
+          git push origin v${NEW_VERSION}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${NEW_VERSION}
+          release_name: Release v${NEW_VERSION}
+          draft: false
+          prerelease: false
