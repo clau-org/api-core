@@ -1,23 +1,18 @@
 import { Context } from "../../deps.ts";
 import { getQuery } from "../../deps.ts";
-import { ZodError, Schema } from "../../deps.ts";
-import { Logger } from "../log.ts";
+import { Schema, ZodError } from "../../deps.ts";
 
 interface ValidationError {
   errors: { message: string }[];
 }
 
-function validateRequest({
-  logger,
-  schema,
-}: {
-  logger: Logger;
-  schema: Schema;
-}) {
+function validate({ schema }: { schema: Schema }) {
   const middleware: any = async (
     ctx: Context,
-    next: () => Promise<void>
+    next: () => Promise<void>,
   ): Promise<any> => {
+    const { logger } = ctx.app.state;
+
     try {
       ctx.state.requestData = {};
 
@@ -25,9 +20,13 @@ function validateRequest({
       let bodyUrl = Object.fromEntries(body?.entries?.() || []);
       let query = getQuery(ctx);
 
-      logger.debug("[ORIGINAL DATA]", { body, bodyUrl, query, request: ctx.request, body2: await ctx.request.body() });
-
-      console.log("Object.keys(bodyUrl).length > 0)", Object.keys(bodyUrl).length > 0)
+      logger.debug("[ORIGINAL DATA]", {
+        body,
+        bodyUrl,
+        query,
+        request: ctx.request,
+        body2: await ctx.request.body(),
+      });
 
       // Clear body if body is URL encoded
       if (Object.keys(bodyUrl).length > 0) body = {};
@@ -68,4 +67,4 @@ function validateRequest({
   return middleware;
 }
 
-export { validateRequest };
+export { validate };

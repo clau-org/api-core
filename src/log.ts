@@ -12,7 +12,7 @@ export type LogLevels = {
   [key in LogLevel]: number;
 };
 
-class Logger implements ILogger {
+export class Logger implements ILogger {
   private prefix: string;
   private level: string;
   private levels: LogLevels = {
@@ -22,7 +22,13 @@ class Logger implements ILogger {
     error: 3,
   };
 
-  constructor(prefix: string, level: LogLevel = "debug") {
+  constructor({
+    prefix,
+    level = "debug",
+  }: {
+    prefix: string;
+    level?: LogLevel;
+  }) {
     this.prefix = prefix;
     this.level = level;
   }
@@ -114,8 +120,8 @@ class Logger implements ILogger {
   }
 
   setPrefix(prefix: string) {
-    this.prefix = prefix
+    this.prefix = prefix;
   }
 }
 
-export { Logger };
+export const logger = new Logger({ prefix: "CLAU" });

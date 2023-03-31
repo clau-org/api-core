@@ -2,6 +2,8 @@
   "version": "0.0.2",
   "tasks": {
     "dev": "deno run -A --watch .playground/main.ts",
+    "test": "deno test",
+    "test:dev": "deno test --watch",
     "preview": "deno run -A .playground/main.ts"
   }
 }

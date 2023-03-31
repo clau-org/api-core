@@ -1,7 +1,6 @@
-import { validateRequest } from "../../src/middleware/validate.ts";
+import { validate } from "../../src/middleware/validate.ts";
 import { Schema, z } from "../../deps.ts";
 import { assertEquals } from "../../deps_tests.ts";
-import { Logger } from "../../src/log.ts";
 
 Deno.test(
   "validateRequest should validate and parse data correctly",
@@ -13,11 +12,16 @@ Deno.test(
 
     const logger: any = { debug: () => {}, error: () => {} };
 
-    const middleware = validateRequest({ logger, schema });
+    const middleware = validate({ schema });
 
     const mockNext = async () => {};
 
     const mockCtx: any = {
+      app: {
+        state: {
+          logger,
+        },
+      },
       request: {
         url: {
           searchParams: [],
@@ -55,11 +59,16 @@ Deno.test(
 
     const logger: any = { debug: () => {}, error: () => {} };
 
-    const middleware = validateRequest({ logger, schema });
+    const middleware = validate({ schema });
 
     const mockNext = async () => {};
 
     const mockCtx: any = {
+      app: {
+        state: {
+          logger,
+        },
+      },
       request: {
         url: {
           searchParams: [],
