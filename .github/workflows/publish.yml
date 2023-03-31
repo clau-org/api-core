@@ -39,7 +39,7 @@ jobs:
           deno-version: v1.x
 
       - name: Test
-        uses: deno test
+        run: deno test
 
       - name: Update version
         run: |
