@@ -46,7 +46,7 @@ Deno.test(
       name: "Alice",
       age: 30,
     });
-  }
+  },
 );
 
 Deno.test(
@@ -89,5 +89,5 @@ Deno.test(
     await middleware(mockCtx, mockNext);
 
     assertEquals(mockCtx.response.status, 400);
-  }
+  },
 );

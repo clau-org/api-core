@@ -1,4 +1,4 @@
-import { Application, Router } from "https://deno.land/x/oak/mod.ts";
+import { Application, Router } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { Logger } from "./log.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
@@ -9,7 +9,6 @@ export type ApiContext = {
 export type ApiConfig = {
   name: string;
   port?: number;
-  prefix?: string;
 };
 
 export class ApiRouter extends Router {
@@ -23,7 +22,7 @@ export class ApiRouter extends Router {
 export class API {
   config: ApiConfig;
   app?: Application<ApiContext>;
-  routers: Router[];
+  routers: ApiRouter[];
   logger: Logger;
 
   constructor(config: ApiConfig) {
@@ -48,7 +47,7 @@ export class API {
     this.routers.push(router);
   }
 
-  async listen() {
+  async listen({ port }: { port?: number } = {}) {
     this.app = new Application<ApiContext>();
     this.app.state.logger = this.logger;
 
@@ -68,8 +67,8 @@ export class API {
       );
     });
 
-    const port = this.config.port ?? 8000;
+    const actualPort = port ?? this.config.port ?? 8000;
 
-    return this.app.listen({ port });
+    return this.app.listen({ port: actualPort });
   }
 }
