@@ -1,4 +1,4 @@
-name: Publish release - API
+name: Publish release
 
 on:
   push:
@@ -26,7 +26,7 @@ env:
 
 jobs:
   publish:
-    name: Publish release - API
+    name: Publish release
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip]')"
 
@@ -67,13 +67,13 @@ jobs:
           # Commit the updated version and push the changes
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
+          git commit -a -m "Bump version to $NEW_VERSION"
+          git push
 
       - name: Create Tag
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
-          git commit -a -m "Bump version to $NEW_VERSION"
-          git push
           git tag v${{ env.NEW_VERSION }}
           git push origin v${{ env.NEW_VERSION }}
 
