@@ -12,7 +12,7 @@ helloRouter.all(
     }),
   }),
   (ctx) => {
-    const { hello } = ctx.state.requestData
+    const { hello } = ctx.state.requestData;
     ctx.response.body = {
       message: `Hello from PLATFORM-API ${hello}`,
     };
