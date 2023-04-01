@@ -16,7 +16,7 @@ function validate({ schema }: { schema: Schema }) {
     try {
       ctx.state.requestData = {};
 
-      let body = (await ctx.request.body()).value as any;
+      let body = await (ctx.request.body().value);
       let bodyUrl = Object.fromEntries(body?.entries?.() || []);
       let query = getQuery(ctx);
 

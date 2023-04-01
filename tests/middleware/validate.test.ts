@@ -26,16 +26,15 @@ Deno.test(
         url: {
           searchParams: [],
         },
-        async body() {
+        body() {
           return {
-            value: {
+            value: new Promise(() => ({
               name: "Alice",
               age: 30,
-            },
+            })),
           };
         },
       },
-
       state: {},
       response: {},
     };
@@ -46,7 +45,7 @@ Deno.test(
       name: "Alice",
       age: 30,
     });
-  },
+  }
 );
 
 Deno.test(
@@ -89,5 +88,5 @@ Deno.test(
     await middleware(mockCtx, mockNext);
 
     assertEquals(mockCtx.response.status, 400);
-  },
+  }
 );
