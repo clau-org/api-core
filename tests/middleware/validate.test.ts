@@ -28,10 +28,9 @@ Deno.test(
         },
         body() {
           return {
-            value: new Promise(() => ({
-              name: "Alice",
-              age: 30,
-            })),
+            value: new Promise((resolve) => {
+              resolve({ name: "Alice", age: 30 });
+            }),
           };
         },
       },
