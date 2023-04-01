@@ -1,3 +1,4 @@
+// Import Colors module from the deno standard library and define the ILogger interface
 import { Colors } from "../deps.ts";
 
 interface ILogger {
@@ -7,33 +8,33 @@ interface ILogger {
   error(message: string, ...args: any[]): void;
 }
 
-export type LogLevel = "debug" | "info" | "warn" | "error";
-export type LogLevels = {
-  [key in LogLevel]: number;
-};
-
+// Define the Logger class that implements the ILogger interface
 export class Logger implements ILogger {
   private prefix: string;
-  private level: string;
-  private levels: LogLevels = {
+  private level: number;
+
+  static levels = {
     debug: 0,
     info: 1,
     warn: 2,
     error: 3,
   };
 
+  // Initialize the logger with a prefix and optional log level
   constructor({
     prefix,
-    level = "debug",
+    level = Logger.levels.debug,
   }: {
     prefix: string;
-    level?: LogLevel;
+    level?: number;
   }) {
     this.prefix = prefix;
     this.level = level;
   }
 
+  // Log a message with the given level and arguments
   private log(level: string, ...args: any[]) {
+    // Define colors for each log level
     const ColorLog: any = {
       debug: Colors.blue,
       info: Colors.green,
@@ -41,6 +42,7 @@ export class Logger implements ILogger {
       error: Colors.red,
     };
 
+    // Format the log message with colors and time, level, and prefix labels
     let LOG_TIME = `[${new Date().toISOString()}]`;
     LOG_TIME = Colors.gray(LOG_TIME);
     LOG_TIME = Colors.italic(LOG_TIME);
@@ -55,6 +57,7 @@ export class Logger implements ILogger {
     LOG_PREFIX = Colors.bgBlack(LOG_PREFIX);
     LOG_PREFIX = `[${LOG_PREFIX}]`;
 
+    // Apply formatting to each argument
     let logArgs = args.map((arg) => {
       if (typeof arg === "object" && arg !== null) {
         try {
@@ -73,25 +76,27 @@ export class Logger implements ILogger {
       return arg;
     });
 
+    // Print the formatted log message to the console
     console.log(LOG_TIME, LOG_LEVEL, LOG_PREFIX, ...logArgs);
   }
 
-  private shouldLog(level: LogLevel) {
-    return this.levels[level] >= this.levels[this.level as LogLevel];
+  // Check if a log level should be logged
+  private shouldLog(level: number) {
+    return level >= this.level;
   }
 
   debug(...args: any[]) {
-    if (!this.shouldLog("debug" as LogLevel)) return;
+    if (!this.shouldLog(Logger.levels.debug)) return;
     this.log("debug", ...args);
   }
 
   info(...args: any[]) {
-    if (!this.shouldLog("info" as LogLevel)) return;
+    if (!this.shouldLog(Logger.levels.info)) return;
     this.log("info", ...args);
   }
 
   warn(...args: any[]) {
-    if (!this.shouldLog("warn" as LogLevel)) return;
+    if (!this.shouldLog(Logger.levels.warn)) return;
     this.log("warn", ...args);
   }
 
@@ -99,24 +104,24 @@ export class Logger implements ILogger {
     this.log("error", ...args);
   }
 
-  setLevel(level: string) {
+  setLevel(level: number) {
     this.level = level;
   }
 
   setLevelDebug() {
-    this.level = "debug";
+    this.level = Logger.levels.debug;
   }
 
   setLevelInfo() {
-    this.level = "info";
+    this.level = Logger.levels.info;
   }
 
   setLevelWarn() {
-    this.level = "warn";
+    this.level = Logger.levels.warn;
   }
 
   setLevelError() {
-    this.level = "error";
+    this.level = Logger.levels.error;
   }
 
   setPrefix(prefix: string) {
