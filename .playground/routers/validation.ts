@@ -9,6 +9,7 @@ helloRouter.all(
   validate({
     schema: z.object({
       hello: z.string(),
+      bye: z.string(),
     }),
   }),
   (ctx) => {

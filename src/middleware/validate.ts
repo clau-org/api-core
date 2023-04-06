@@ -61,17 +61,11 @@ function validate({ schema }: { schema: Schema }) {
     } catch (error) {
       // Handle Zod validation errors
       if (error instanceof ZodError) {
-        const validationError: ValidationError = {
-          errors: error.errors.map((err: { message: any }) => ({
-            message: err.message,
-          })),
-        };
-
         // Log the validation error and return a 400 status with the error message
-        logger.error("[DATA VALIDATION ERROR]", validationError);
+        logger.error("[DATA VALIDATION ERROR]", error);
 
         ctx.response.status = 400;
-        ctx.response.body = validationError;
+        ctx.response.body = error;
       } else {
         // Rethrow other types of errors
         throw error;
