@@ -1,4 +1,5 @@
 import { API } from "../src/api.ts";
+
 import { Logger } from "../src/log.ts";
 import { helloRouter } from "./routers/hello.ts";
 
@@ -6,6 +7,11 @@ const api = new API({
   name: "api-core",
   logLevel: Logger.levels.info,
 });
+
+import { helloRouter } from "./routers/hello.ts";
+
+const api = new API({ name: "api-core" });
+
 
 api.addRouter(helloRouter);
 

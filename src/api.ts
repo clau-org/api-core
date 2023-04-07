@@ -1,7 +1,14 @@
 // Import required modules
+
 import { Application, DBClient, oakCors, Router } from "../deps.ts";
 import { Logger } from "./log.ts";
 import { errorHandler } from "./middleware/error.ts";
+
+import { Application, Router } from "../deps.ts";
+import { Logger } from "./log.ts";
+import { errorHandler } from "./middleware/error.ts";
+import { oakCors } from "../deps.ts";
+
 
 // Define types for API context and configuration
 export type ApiContext = {
@@ -95,7 +102,10 @@ export class API {
     // Add CORS middleware to the app
     this.app.use(oakCors());
 
+
     // Add generic error handler middleware
+
+
     this.app.use(errorHandler);
 
     // Add each router's routes and allowed methods to the app

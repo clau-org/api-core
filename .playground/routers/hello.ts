@@ -8,6 +8,7 @@ helloRouter.all(
   "/",
   validate({
     schema: z.object({
+
       message: z.string().nullish(),
     }),
   }),
@@ -48,6 +49,18 @@ helloRouter.all(
       message,
     };
   }
+
+      hello: z.string(),
+      bye: z.string(),
+    }),
+  }),
+  (ctx) => {
+    const { hello } = ctx.state.requestData;
+    ctx.response.body = {
+      message: `Hello from PLATFORM-API ${hello}`,
+    };
+  },
+
 );
 
 export { helloRouter };
