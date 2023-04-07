@@ -1,6 +1,8 @@
 {
   "version": "2",
   "remote": {
+    "https://cdn.jsdelivr.net/gh/clau-org/api-core@latest/deps.ts": "3018fafe48638a5b3ad51d4d6b5acd9d2ddfa37a678c5bf22f19420f3d62f337",
+    "https://cdn.jsdelivr.net/gh/clau-org/api-core@latest/src/log.ts": "bf09d899b1b666db84f0b633c141247e8edd48562d7afd80fe69506598c2848d",
     "https://deno.land/std@0.178.0/_util/asserts.ts": "178dfc49a464aee693a7e285567b3d0b555dc805ff490505a8aae34f9cfb1462",
     "https://deno.land/std@0.178.0/_util/os.ts": "d932f56d41e4f6a6093d56044e29ce637f8dcc43c5a90af43504a889cf1775e3",
     "https://deno.land/std@0.178.0/async/deferred.ts": "42790112f36a75a57db4a96d33974a936deb7b04d25c6084a9fa8a49f135def8",

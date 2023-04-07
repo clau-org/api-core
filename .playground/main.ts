@@ -1,7 +1,7 @@
 import { API } from "../src/api.ts";
-import { helloRouter } from "./routers/validation.ts";
+import { helloRouter } from "./routers/hello.ts";
 
-const api = new API({ name: "test" });
+const api = new API({ name: "api-core" });
 
 api.addRouter(helloRouter);
 
