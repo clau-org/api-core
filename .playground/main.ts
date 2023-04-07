@@ -8,11 +8,6 @@ const api = new API({
   logLevel: Logger.levels.info,
 });
 
-import { helloRouter } from "./routers/hello.ts";
-
-const api = new API({ name: "api-core" });
-
-
 api.addRouter(helloRouter);
 
 api.setDBUrl({
