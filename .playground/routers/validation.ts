@@ -12,10 +12,15 @@ helloRouter.all(
       bye: z.string(),
     }),
   }),
-  (ctx) => {
+  async (ctx) => {
+    const { dbClient } = ctx.app.state;
+    const { users: usersModel } = dbClient;
     const { hello } = ctx.state.requestData;
+
+    const user = await usersModel.findMany({ take: 4 })
     ctx.response.body = {
-      message: `Hello from PLATFORM-API ${hello}`,
+      user,
+      message:  `Hello from PLATFORM-API ${hello}`,
     };
   },
 );

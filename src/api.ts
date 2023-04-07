@@ -1,26 +1,24 @@
 // Import required modules
 import { Application, Router } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { Logger } from "./log.ts";
+import { DBClient } from "../deps.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
 // Define types for API context and configuration
 export type ApiContext = {
-  logger: Logger;
+  logger:   Logger;
+  dbClient: DBClient;
 };
 
 export type ApiConfig = {
   name: string;
   port?: number;
+  dbUrl?: string;
 };
 
 // Define a custom router that extends Oak's Router
 export class ApiRouter extends Router {
-  logger?: Logger;
 
-  // Set a logger for the router
-  setLogger(logger: Logger) {
-    this.logger = logger;
-  }
 }
 
 // Define an API class that uses Oak and the custom router
@@ -29,21 +27,32 @@ export class API {
   app?: Application;
   routers: ApiRouter[];
   logger: Logger;
+  dbClient?: DBClient;
 
   // Initialize the API with a configuration object
   constructor(config: ApiConfig) {
-    const { name, port } = config;
+    const { name, port, dbUrl } = config;
 
     // Save the configuration options
     this.config = {
       name,
       port,
+      dbUrl,
     };
 
     // Create a logger instance with the API name as prefix
     this.logger = new Logger({
       prefix: name,
     });
+    
+    // Create a DBClient instance if exist dbUrl 
+    if(dbUrl)
+    this.dbClient = new DBClient({
+      datasources: {
+        db: { url: dbUrl },
+      },
+    });
+    
 
     // Create an empty array to store the routers
     this.routers = [];
@@ -54,10 +63,22 @@ export class API {
 
   // Add a router to the API
   addRouter(router: ApiRouter) {
-    // Set the API logger as the router logger
-    router.setLogger(this.logger);
     // Add the router to the list of routers
     this.routers.push(router);
+  }
+
+  // Set dbUrl on DBClient and initialize the client
+  setDBUrl(dbUrl: string) {
+    this.dbClient = new DBClient({
+      datasources: {
+        db: { url: dbUrl },
+      },
+    });
+  }
+
+  // set config on DBClient and initialize the client
+  setDBClient(config: {}) {
+    this.dbClient = new DBClient(config);
   }
 
   // Set up the Oak application
@@ -66,6 +87,9 @@ export class API {
     this.app = new Application();
     // Set the API logger as a state variable in the app
     this.app.state.logger = this.logger;
+    
+    // Set the API DBClient in the app
+    this.app.state.dbClient = this.dbClient;
 
     // Add CORS middleware to the app
     this.app.use(oakCors());
