@@ -15,6 +15,7 @@ export type ApiConfig = {
   port?: number;
   logLevel?: number;
   dbUrl?: string;
+  [key: string]: any;
 };
 
 // Define a custom router that extends Oak's Router
@@ -30,14 +31,10 @@ export class API {
 
   // Initialize the API with a configuration object
   constructor(config: ApiConfig) {
-    const { name, port, dbUrl, logLevel } = config;
+    const { name, dbUrl, logLevel } = config;
 
     // Save the configuration options
-    this.config = {
-      name,
-      port,
-      dbUrl,
-    };
+    this.config = config;
 
     // Create a logger instance with the API name as prefix
     this.logger = new Logger({
