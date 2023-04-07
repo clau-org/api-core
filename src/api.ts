@@ -1,5 +1,5 @@
 // Import required modules
-import { Application, Router } from "../deps.ts";
+import { Application, Router, DBClient, oakCors } from "../deps.ts";
 import { Logger } from "./log.ts";
 import { DBClient } from "../deps.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
@@ -24,7 +24,7 @@ export class ApiRouter extends Router {
 // Define an API class that uses Oak and the custom router
 export class API {
   config: ApiConfig;
-  app?: Application;
+  app?: Application<ApiContext>;
   routers: ApiRouter[];
   logger: Logger;
   dbClient?: DBClient;
@@ -53,6 +53,14 @@ export class API {
       },
     });
     
+
+    // Create a DBClient instance if exist dbUrl
+    if (dbUrl)
+      this.dbClient = new DBClient({
+        datasources: {
+          db: { url: dbUrl },
+        },
+      });
 
     // Create an empty array to store the routers
     this.routers = [];
@@ -84,10 +92,13 @@ export class API {
   // Set up the Oak application
   setupApp() {
     // Create a new Oak application instance
-    this.app = new Application();
+    this.app = new Application<ApiContext>();
     // Set the API logger as a state variable in the app
     this.app.state.logger = this.logger;
     
+    // Set the API DBClient in the app
+    this.app.state.dbClient = this.dbClient;
+
     // Set the API DBClient in the app
     this.app.state.dbClient = this.dbClient;
 
@@ -108,7 +119,7 @@ export class API {
       this.logger.info(
         `API ${name} started on ${
           secure ? "https://" : "http://"
-        }localhost:${port}`,
+        }localhost:${port}`
       );
     });
   }
