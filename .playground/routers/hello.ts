@@ -8,6 +8,48 @@ helloRouter.all(
   "/",
   validate({
     schema: z.object({
+
+      message: z.string().nullish(),
+    }),
+  }),
+  async (ctx) => {
+    const { dbClient, logger } = ctx.app.state;
+    const { message } = ctx.state.requestData;
+    const { users: usersModel } = dbClient;
+
+    const user = await usersModel.findMany({ take: 4 });
+
+    logger.debug({ message, user });
+
+    ctx.response.body = {
+      user,
+      message,
+    };
+  }
+);
+
+helloRouter.all(
+  "/hello",
+  validate({
+    schema: z.object({
+      message: z.string().nullish(),
+    }),
+  }),
+  async (ctx) => {
+    const { dbClient, logger } = ctx.app.state;
+    const { message } = ctx.state.requestData;
+    const { users: usersModel } = dbClient;
+
+    const user = await usersModel.findMany({ take: 4 });
+
+    logger.debug({ message, user });
+
+    ctx.response.body = {
+      user,
+      message,
+    };
+  }
+
       hello: z.string(),
       bye: z.string(),
     }),
@@ -18,6 +60,7 @@ helloRouter.all(
       message: `Hello from PLATFORM-API ${hello}`,
     };
   },
+
 );
 
 export { helloRouter };

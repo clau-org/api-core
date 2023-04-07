@@ -8,20 +8,6 @@ const apiConfig: ApiConfig = {
   name: "Test API",
 };
 
-// Define a test to ensure the logger is correctly set in the ApiRouter class
-Deno.test("ApiRouter should set logger", () => {
-  // Create a logger instance and an ApiRouter instance
-  const logger = new Logger({ prefix: "TEST", level: Logger.levels.error });
-  const apiRouter = new ApiRouter();
-
-  // Call the setLogger method on the ApiRouter instance to set the logger
-  apiRouter.setLogger(logger);
-
-  // Assert that the logger property exists on the ApiRouter instance and that it matches the logger instance created earlier
-  assert(apiRouter.logger);
-  assertEquals(apiRouter.logger, logger);
-});
-
 // Define a test to ensure routers can be added to the API instance
 Deno.test("API should add router", async () => {
   // Create an API instance

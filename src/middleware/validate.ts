@@ -1,19 +1,10 @@
-// Import Context and getQuery functions from the Oak framework, and the Schema and ZodError classes from the Zod library
-import { Context } from "../../deps.ts";
+import { Middleware } from "../../deps.ts";
 import { getQuery } from "../../deps.ts";
 import { Schema, ZodError } from "../../deps.ts";
 
-// Define a ValidationError interface for error messages
-interface ValidationError {
-  errors: { message: string }[];
-}
-
-// Define a validate function that returns a middleware function
+// Define a validate function that returns a Middleware
 function validate({ schema }: { schema: Schema }) {
-  const middleware: any = async (
-    ctx: Context,
-    next: () => Promise<void>,
-  ): Promise<any> => {
+  const middleware: Middleware = async (ctx, next): Promise<any> => {
     const { logger } = ctx.app.state;
 
     try {
@@ -21,12 +12,12 @@ function validate({ schema }: { schema: Schema }) {
       ctx.state.requestData = {};
 
       // Get request body and query parameters
-      let body = await (ctx.request.body().value);
+      let body = await ctx.request.body().value;
       let bodyUrl = Object.fromEntries(body?.entries?.() || []);
       let query = getQuery(ctx);
 
       // Log the original data
-      logger.debug("[ORIGINAL DATA]", {
+      logger.debug("[middleware: validate][original data]", {
         body,
         bodyUrl,
         query,
@@ -45,13 +36,13 @@ function validate({ schema }: { schema: Schema }) {
       };
 
       // Log the data before validation
-      logger.debug("[DATA BEFORE VALIDATION]", data);
+      logger.debug("[middleware: validate][before validation]", data);
 
       // Validate data against the provided schema, if provided
       if (schema) schema.parse(data);
 
       // Log the data after validation
-      logger.debug("[DATA AFTER VALIDATION]", data);
+      logger.debug("[middleware: validate][after validation]", data);
 
       // Set requestData property to the validated data
       ctx.state.requestData = data;
@@ -62,10 +53,10 @@ function validate({ schema }: { schema: Schema }) {
       // Handle Zod validation errors
       if (error instanceof ZodError) {
         // Log the validation error and return a 400 status with the error message
-        logger.error("[DATA VALIDATION ERROR]", error);
+        logger.error("[middleware: validate][validation error]", error);
 
         ctx.response.status = 400;
-        ctx.response.body = error;
+        ctx.response.body = { error };
       } else {
         // Rethrow other types of errors
         throw error;
