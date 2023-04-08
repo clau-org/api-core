@@ -8,11 +8,11 @@ generator client {
 
 datasource db {
   provider  = "mongodb"
-  url       = env("DATAPROXY_URL")
-  directUrl = env("DATABASE_URL")
+  url       = env("CLAU_PLATFORM_PROXY_DB")
+  directUrl = env("CLAU_PLATFORM_DB")
 }
 
-// Model principal "plataforma" que engloba todas las funcionalidades
+// Main "platform" model that encompasses all functionalities.
 model platforms {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -21,9 +21,8 @@ model platforms {
   updatedAt DateTime? @updatedAt()
 
   // Platform data
-  key      String  @unique
-  username String? @unique
-  name     String?
+  key  String  @unique
+  name String?
 
   // Image of the platform
   image_id String? @db.ObjectId
@@ -46,7 +45,7 @@ model platforms {
   organizations    organizations[] @relation(name: "platform_organizations", fields: [organization_ids], references: [id])
 }
 
-// El modelo provider representa los servicios que la plataforma intentara abstraer y presentar bajo la misma API
+// The provider model represents the services that the platform will attempt to abstract and present under the same API.
 model providers {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -71,7 +70,7 @@ model providers {
   provider_keys    provider_keys[] @relation(name: "provider_keys")
 }
 
-// Lista de keys por provedor usadas para acceder a los servicios
+// List of provider keys used to access services.
 model provider_keys {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -86,15 +85,15 @@ model provider_keys {
   description String?
 
   // Provider for which this key is for
-  provider_id String    @db.ObjectId
-  provider    providers @relation(name: "provider_keys", fields: [provider_id], references: [id])
+  provider_id String?    @db.ObjectId
+  provider    providers? @relation(name: "provider_keys", fields: [provider_id], references: [id])
 
   // Platforms that can use this provider keys
   platform_ids String[]    @db.ObjectId
   platforms    platforms[] @relation(name: "platform_provider_keys", fields: [platform_ids], references: [id])
 }
 
-// Dentro de las plataformas el modelo principal es el "usuario" la experieincia gira alrededor de el
+// Within platforms, the main model is the "user," and the experience revolves around them.
 model users {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -103,7 +102,7 @@ model users {
   uuid      String    @unique @default(uuid())
 
   // User data
-  username  String?     @unique
+  nickname  String?     @unique
   email     String?     @unique
   phone     String?     @unique
   name      String?
@@ -135,16 +134,16 @@ model users {
   stores    stores[] @relation(name: "store_users", fields: [store_ids], references: [id])
 
   // Paymenets initiated by user
-  payments_created payment[] @relation(name: "user_payment_creator")
+  payments_created payments[] @relation(name: "user_payment_creator")
 
   // Paymenets confirmed by user
-  payments_confirmed payment[] @relation(name: "user_payment_confirm")
+  payments_confirmed payments[] @relation(name: "user_payment_confirm")
 
   // Sessions of the user
   session sessions[] @relation()
 }
 
-// Dentro de las plataformas el segundo modelo principal son las organizaciones que representan las agrupacion de usuarios
+// Within platforms, the second main model is organizations, which represent groups of users.
 model organizations {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -153,7 +152,7 @@ model organizations {
   uuid      String    @unique @default(uuid())
 
   // Organization data
-  username String? @unique
+  nickname String? @unique
   name     String?
 
   // Image of the organization
@@ -173,7 +172,7 @@ model organizations {
   locations    locations[] @relation(name: "organization_locations", fields: [location_ids], references: [id])
 }
 
-// El beneficio principal para las organizaciones es comerciar, para eso tienen las stores
+// The main benefit for organizations is to trade, and for that they have stores.
 model stores {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -182,7 +181,7 @@ model stores {
   uuid      String    @unique @default(uuid())
 
   // Store data
-  username String? @unique
+  nickname String? @unique
   name     String?
 
   // Image of the store
@@ -202,7 +201,7 @@ model stores {
   inventories   inventories[] @relation(name: "store_inventories", fields: [inventory_ids], references: [id])
 }
 
-// Las tiendas tienen iventarios
+// The stores have inventories.
 model inventories {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -223,7 +222,7 @@ model inventories {
   stores    stores[] @relation(name: "store_inventories", fields: [store_ids], references: [id])
 }
 
-// Y los inventarios tienen items 
+// And the inventories have items.
 model item_inventories {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -232,8 +231,8 @@ model item_inventories {
   uuid      String    @unique @default(uuid())
 
   // Item invenotory data
-  item_id String @db.ObjectId
-  item    items  @relation(name: "item_inventories", fields: [item_id], references: [id])
+  item_id String? @db.ObjectId
+  item    items?  @relation(name: "item_inventories", fields: [item_id], references: [id])
 
   // Item invenotory type
   type ItemQualitativeType
@@ -246,7 +245,7 @@ model item_inventories {
   inventories  inventories[] @relation(name: "inventory", fields: [iventory_ids], references: [id])
 }
 
-// Para intercambiar multiples items se crean las ordenes
+// To exchange multiple items, orders are created.
 model oders {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -262,7 +261,7 @@ model oders {
   item_orders    item_orders[] @relation(name: "order", fields: [item_order_ids], references: [id])
 }
 
-// Y tienen su lista de items
+// And they have their list of items.
 model item_orders {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -271,8 +270,8 @@ model item_orders {
   uuid      String    @unique @default(uuid())
 
   // Item order data
-  item_id String @db.ObjectId
-  item    items  @relation(name: "item_orders", fields: [item_id], references: [id])
+  item_id String? @db.ObjectId
+  item    items?  @relation(name: "item_orders", fields: [item_id], references: [id])
 
   // Item order type
   type ItemQualitativeType
@@ -285,7 +284,7 @@ model item_orders {
   orders    oders[]  @relation(name: "order", fields: [order_ids], references: [id])
 }
 
-model PaymentType {
+model payment_types {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime? @default(now())
@@ -297,45 +296,45 @@ model PaymentType {
   description String?
 
   // Payment that are from this type
-  payments payment[] @relation(name: "payment_type")
+  payments payments[] @relation(name: "payment_type")
 }
 
-model payment {
+model payments {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt()
   uuid      String    @unique @default(uuid())
 
-  // Payment data
+  // payments data
   title       String?
   description String?
 
   // Type of payment
-  payment_type_id String      @db.ObjectId
-  payment_type    PaymentType @relation(name: "payment_type", fields: [payment_type_id], references: [id])
+  payment_type_id String?      @db.ObjectId
+  payment_type    payment_types? @relation(name: "payment_type", fields: [payment_type_id], references: [id])
 
   // User who initiated the payment
-  user_creator_id String @db.ObjectId
-  user_creator    users  @relation(name: "user_payment_creator", fields: [user_creator_id], references: [id])
+  user_creator_id String? @db.ObjectId
+  user_creator    users?  @relation(name: "user_payment_creator", fields: [user_creator_id], references: [id])
 
   // User who initiated the payment
-  user_confirm_id String @db.ObjectId
-  user_confirm    users  @relation(name: "user_payment_confirm", fields: [user_confirm_id], references: [id])
+  user_confirm_id String? @db.ObjectId
+  user_confirm    users?  @relation(name: "user_payment_confirm", fields: [user_confirm_id], references: [id])
 
   // Account that will get the payment
-  receiver_account_id String         @db.ObjectId
-  recever_account     PaymentAccount @relation(name: "payments_account_received", fields: [receiver_account_id], references: [id])
+  receiver_account_id String?         @db.ObjectId
+  recever_account     payment_accounts? @relation(name: "payments_account_received", fields: [receiver_account_id], references: [id])
 
   // Account that will sent the payment
-  sender_account_id String         @db.ObjectId
-  sender_account    PaymentAccount @relation(name: "payments_account_sended", fields: [sender_account_id], references: [id])
+  sender_account_id String?         @db.ObjectId
+  sender_account    payment_accounts? @relation(name: "payments_account_sended", fields: [sender_account_id], references: [id])
 
   // Payment amount to pay
   amount Currency
 }
 
-model PaymentAccount {
+model payment_accounts {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime? @default(now())
@@ -346,13 +345,13 @@ model PaymentAccount {
   amount Currency
 
   // Paymentes received by this accounts
-  payments_received payment[] @relation(name: "payments_account_received")
+  payments_received payments[] @relation(name: "payments_account_received")
 
   // Accounts that have send a payment
-  payments_sended payment[] @relation(name: "payments_account_sended")
+  payments_sended payments[] @relation(name: "payments_account_sended")
 }
 
-// Representa algo pensando para comersar "servicio" o "producto"
+// Represents something intended for trading, either a "service" or a "product"
 model items {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -379,7 +378,7 @@ model items {
   item_orders item_orders[] @relation(name: "item_orders")
 }
 
-// Representa una ubicacion dentro de el planeta tierra
+// Represents a location within planet Earth.
 model locations {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -410,7 +409,7 @@ model locations {
   users_prefered users[] @relation(name: "user_prefered_location")
 }
 
-// Representa una session de usuario
+// Represents a user session.
 model sessions {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -422,12 +421,12 @@ model sessions {
   jwt String
 
   // User that owns the session
-  user_uuid String
-  user_id   String @db.ObjectId
-  user      users  @relation(fields: [user_id], references: [id])
+  user_uuid String?
+  user_id   String? @db.ObjectId
+  user      users?  @relation(fields: [user_id], references: [id])
 }
 
-// una imagen simple, la original y el recorte
+// A simple image, the original and the crop
 model images {
   // Base
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
