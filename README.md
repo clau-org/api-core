@@ -32,6 +32,22 @@ To preview this module run:
 deno task preview
 ```
 
+## Change schema
+
+To update this module schema run:
+
+```
+deno task prisma
+```
+
+## Push schema changes to DB
+
+To push the schema changes of this module run:
+
+```
+deno task prisma:push
+```
+
 ## Release
 
 To release a new `patch` version push to main. To any type of release go to the

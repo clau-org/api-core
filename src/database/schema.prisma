@@ -1,0 +1,483 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["deno"]
+  output          = "./generated/client"
+}
+
+datasource db {
+  provider  = "mongodb"
+  url       = env("DATAPROXY_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+// Model principal "plataforma" que engloba todas las funcionalidades
+model platforms {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  uuid      String    @unique @default(uuid())
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+
+  // Platform data
+  key      String  @unique
+  username String? @unique
+  name     String?
+
+  // Image of the platform
+  image_id String? @db.ObjectId
+  image    images? @relation(fields: [image_id], references: [id])
+
+  // Providers of the platform
+  provider_ids String[]    @db.ObjectId
+  providers    providers[] @relation(name: "platform_providers", fields: [provider_ids], references: [id])
+
+  // Providers keys of the platform
+  provider_key_ids String[]        @db.ObjectId
+  provider_keys    provider_keys[] @relation(name: "platform_provider_keys", fields: [provider_key_ids], references: [id])
+
+  // Users belonging to the platform
+  user_ids String[] @db.ObjectId
+  users    users[]  @relation(name: "platform_users", fields: [user_ids], references: [id])
+
+  // Organization belonging to the platform
+  organization_ids String[]        @db.ObjectId
+  organizations    organizations[] @relation(name: "platform_organizations", fields: [organization_ids], references: [id])
+}
+
+// El modelo provider representa los servicios que la plataforma intentara abstraer y presentar bajo la misma API
+model providers {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Provider data
+  key  String  @unique
+  name String?
+
+  // Image of the provider
+  image_id String? @db.ObjectId
+  image    images? @relation(fields: [image_id], references: [id])
+
+  // Platforms that use this provider
+  platform_ids String[]    @db.ObjectId
+  platforms    platforms[] @relation(name: "platform_providers", fields: [platform_ids], references: [id])
+
+  // Keys inteed to be used on this provider
+  provider_key_ids String[]        @db.ObjectId
+  provider_keys    provider_keys[] @relation(name: "provider_keys")
+}
+
+// Lista de keys por provedor usadas para acceder a los servicios
+model provider_keys {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Provider data
+  public_key  String
+  private_key String
+  secret      Boolean
+  description String?
+
+  // Provider for which this key is for
+  provider_id String    @db.ObjectId
+  provider    providers @relation(name: "provider_keys", fields: [provider_id], references: [id])
+
+  // Platforms that can use this provider keys
+  platform_ids String[]    @db.ObjectId
+  platforms    platforms[] @relation(name: "platform_provider_keys", fields: [platform_ids], references: [id])
+}
+
+// Dentro de las plataformas el modelo principal es el "usuario" la experieincia gira alrededor de el
+model users {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // User data
+  username  String?     @unique
+  email     String?     @unique
+  phone     String?     @unique
+  name      String?
+  birthDate DateTime?
+  gender    GenderType?
+
+  // Image of the user
+  image_id String? @db.ObjectId
+  image    images? @relation(fields: [image_id], references: [id])
+
+  // User prefered location
+  prefered_location_id String?    @db.ObjectId
+  prefered_location    locations? @relation(name: "user_prefered_location", fields: [prefered_location_id], references: [id])
+
+  // Locations of the user
+  location_ids String[]    @db.ObjectId
+  locations    locations[] @relation(name: "user_locations", fields: [location_ids], references: [id])
+
+  // Platforms to which the user belongs
+  platform_ids String[]    @db.ObjectId
+  platforms    platforms[] @relation(name: "platform_users", fields: [platform_ids], references: [id])
+
+  // Organizations to which the user belongs
+  organization_ids String[]        @db.ObjectId
+  organizations    organizations[] @relation(name: "organization_user", fields: [organization_ids], references: [id])
+
+  // Stores to which the user belongs
+  store_ids String[] @db.ObjectId
+  stores    stores[] @relation(name: "store_users", fields: [store_ids], references: [id])
+
+  // Paymenets initiated by user
+  payments_created payment[] @relation(name: "user_payment_creator")
+
+  // Paymenets confirmed by user
+  payments_confirmed payment[] @relation(name: "user_payment_confirm")
+
+  // Sessions of the user
+  session sessions[] @relation()
+}
+
+// Dentro de las plataformas el segundo modelo principal son las organizaciones que representan las agrupacion de usuarios
+model organizations {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Organization data
+  username String? @unique
+  name     String?
+
+  // Image of the organization
+  image_id String? @db.ObjectId
+  image    images? @relation(fields: [image_id], references: [id])
+
+  // Platforms to which the organization belongs
+  platform_ids String[]    @db.ObjectId
+  platforms    platforms[] @relation(name: "platform_organizations", fields: [platform_ids], references: [id])
+
+  // Users belonging to the organization
+  user_ids String[] @db.ObjectId
+  users    users[]  @relation(name: "organization_user", fields: [user_ids], references: [id])
+
+  // Locations of the organization
+  location_ids String[]    @db.ObjectId
+  locations    locations[] @relation(name: "organization_locations", fields: [location_ids], references: [id])
+}
+
+// El beneficio principal para las organizaciones es comerciar, para eso tienen las stores
+model stores {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Store data
+  username String? @unique
+  name     String?
+
+  // Image of the store
+  image_id String? @db.ObjectId
+  image    images? @relation(fields: [image_id], references: [id])
+
+  // Users belonging to the store
+  user_ids String[] @db.ObjectId
+  users    users[]  @relation(name: "store_users", fields: [user_ids], references: [id])
+
+  // Locations of the store
+  location_ids String[]    @db.ObjectId
+  locations    locations[] @relation(name: "store_locations", fields: [location_ids], references: [id])
+
+  // Inventories of the store
+  inventory_ids String[]      @db.ObjectId
+  inventories   inventories[] @relation(name: "store_inventories", fields: [inventory_ids], references: [id])
+}
+
+// Las tiendas tienen iventarios
+model inventories {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Inventory data
+  name        String?
+  description String?
+
+  // Item inventories of the inventory
+  item_iventory_ids String[]           @db.ObjectId
+  item_inventories  item_inventories[] @relation(name: "inventory", fields: [item_iventory_ids], references: [id])
+
+  // Stores that have this inventory
+  store_ids String[] @db.ObjectId
+  stores    stores[] @relation(name: "store_inventories", fields: [store_ids], references: [id])
+}
+
+// Y los inventarios tienen items 
+model item_inventories {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Item invenotory data
+  item_id String @db.ObjectId
+  item    items  @relation(name: "item_inventories", fields: [item_id], references: [id])
+
+  // Item invenotory type
+  type ItemQualitativeType
+
+  // Item invenotory value
+  value Float
+
+  // Inventories of the item iventory
+  iventory_ids String[]      @db.ObjectId
+  inventories  inventories[] @relation(name: "inventory", fields: [iventory_ids], references: [id])
+}
+
+// Para intercambiar multiples items se crean las ordenes
+model oders {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Order data
+  total Float
+
+  // Item orders of the order
+  item_order_ids String[]      @db.ObjectId
+  item_orders    item_orders[] @relation(name: "order", fields: [item_order_ids], references: [id])
+}
+
+// Y tienen su lista de items
+model item_orders {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Item order data
+  item_id String @db.ObjectId
+  item    items  @relation(name: "item_orders", fields: [item_id], references: [id])
+
+  // Item order type
+  type ItemQualitativeType
+
+  // Item order value
+  value Float
+
+  // Orders of the item order
+  order_ids String[] @db.ObjectId
+  orders    oders[]  @relation(name: "order", fields: [order_ids], references: [id])
+}
+
+model PaymentType {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Payment type data
+  title       String?
+  description String?
+
+  // Payment that are from this type
+  payments payment[] @relation(name: "payment_type")
+}
+
+model payment {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Payment data
+  title       String?
+  description String?
+
+  // Type of payment
+  payment_type_id String      @db.ObjectId
+  payment_type    PaymentType @relation(name: "payment_type", fields: [payment_type_id], references: [id])
+
+  // User who initiated the payment
+  user_creator_id String @db.ObjectId
+  user_creator    users  @relation(name: "user_payment_creator", fields: [user_creator_id], references: [id])
+
+  // User who initiated the payment
+  user_confirm_id String @db.ObjectId
+  user_confirm    users  @relation(name: "user_payment_confirm", fields: [user_confirm_id], references: [id])
+
+  // Account that will get the payment
+  receiver_account_id String         @db.ObjectId
+  recever_account     PaymentAccount @relation(name: "payments_account_received", fields: [receiver_account_id], references: [id])
+
+  // Account that will sent the payment
+  sender_account_id String         @db.ObjectId
+  sender_account    PaymentAccount @relation(name: "payments_account_sended", fields: [sender_account_id], references: [id])
+
+  // Payment amount to pay
+  amount Currency
+}
+
+model PaymentAccount {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Payment account current amount
+  amount Currency
+
+  // Paymentes received by this accounts
+  payments_received payment[] @relation(name: "payments_account_received")
+
+  // Accounts that have send a payment
+  payments_sended payment[] @relation(name: "payments_account_sended")
+}
+
+// Representa algo pensando para comersar "servicio" o "producto"
+model items {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Item data
+  name        String?
+  description String?
+  tags        String[]
+
+  // Images of the item
+  image_ids String[] @db.ObjectId
+  images    images[] @relation(name: "item_images", fields: [image_ids], references: [id])
+
+  // Prices of the item
+  prices Currency[]
+
+  // Item iventories that have this item
+  item_inventories item_inventories[] @relation(name: "item_inventories")
+
+  // Item orders that have this item
+  item_orders item_orders[] @relation(name: "item_orders")
+}
+
+// Representa una ubicacion dentro de el planeta tierra
+model locations {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Location metadata
+  name String?
+
+  // Location data
+  latitude  Float?
+  longitude Float?
+
+  // Users having this location
+  user_ids String[] @db.ObjectId
+  users    users[]  @relation(name: "user_locations", fields: [user_ids], references: [id])
+
+  // Organizations having this location
+  organizations_ids String[]        @db.ObjectId
+  organizations     organizations[] @relation(name: "organization_locations", fields: [organizations_ids], references: [id])
+
+  // Stores having this location
+  store_ids String[] @db.ObjectId
+  stores    stores[] @relation(name: "store_locations", fields: [user_ids], references: [id])
+
+  // Users having this location as prefered location
+  users_prefered users[] @relation(name: "user_prefered_location")
+}
+
+// Representa una session de usuario
+model sessions {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Session data
+  jwt String
+
+  // User that owns the session
+  user_uuid String
+  user_id   String @db.ObjectId
+  user      users  @relation(fields: [user_id], references: [id])
+}
+
+// una imagen simple, la original y el recorte
+model images {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+
+  // Image data
+  key         String  @unique
+  url         String? @unique
+  clipped_key String? @unique
+  clipped_url String? @unique
+
+  // Relations
+  platforms     platforms[]
+  providers     providers[]
+  organizations organizations[]
+  stores        stores[]
+  users         users[]
+
+  // Item that has this in their list of images
+  item_ids String[] @db.ObjectId
+  items    items[]  @relation(name: "item_images", fields: [item_ids], references: [id])
+}
+
+enum ItemQualitativeType {
+  UNITY
+  GRAM
+}
+
+enum GenderType {
+  MALE
+  FEMALE
+}
+
+type Currency {
+  amount   Float
+  currency CurrencyType
+}
+
+enum CurrencyType {
+  MXN
+  USD
+  CLAU_CREDIT
+}
+
+model ClauTest {
+  // Base
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt()
+  uuid      String    @unique @default(uuid())
+}
